@@ -1,0 +1,6 @@
+{
+  "name": "Udvash Academic - Vertical Circular Motion & Projectile Lab",
+  "description": "Interactive physics simulation of vertical circular motion, tension dynamics, and slackening projectile trajectories.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

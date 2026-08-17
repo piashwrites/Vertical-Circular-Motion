@@ -4,10 +4,181 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Play, Pause, RotateCcw, Power, Volume2, VolumeX, Moon, Sun, Activity, Settings, Info } from 'lucide-react';
+import { Play, Pause, RotateCcw, Power, Volume2, VolumeX, Moon, Sun, Activity, Settings, Info, X, Languages } from 'lucide-react';
+
+// --- TRANSLATION DICTIONARY (ENGLISH & BENGALI) ---
+const translations = {
+  en: {
+    title: 'VERTICAL CIRCLE',
+    titleSuffix: '& PROJECTILE LAB',
+    brandSubtitle: 'UDVASH ACADEMIC',
+    stringMode: 'String Mode',
+    rodMode: 'Rigid Rod Mode',
+    presets: 'Preset Scenarios',
+    autoCalc: 'Auto-calculate',
+    oscillation: 'Oscillation',
+    slackening: 'Slackening',
+    fullLoop: 'Full Loop',
+    criticalBoundary: 'Critical Boundary',
+    inputParams: 'Input Parameters',
+    theta0Label: 'Initial Release Angle (θ₀)',
+    bot: 'Bot',
+    hor: 'Hor',
+    top: 'Top',
+    initialDir: 'Initial Direction',
+    anticlockwise: 'Anticlockwise (↺)',
+    clockwise: 'Clockwise (↻)',
+    v0Label: 'Initial Velocity (v₀)',
+    velocity: 'Velocity (v₀):',
+    equivFactor: 'Equivalent Factor n (0 - 10):',
+    factorN: 'Factor n (0 to 10):',
+    calcV0: 'Calculated Velocity v₀:',
+    stringLength: 'String Length (L)',
+    mass: 'Mass (m)',
+    gravity: 'Gravity Acceleration (g)',
+    earth: 'Earth (9.81)',
+    moon: 'Moon (1.62)',
+    mars: 'Mars (3.71)',
+    jupiter: 'Jupiter (24.79)',
+    simControls: 'Simulation Controls',
+    play: 'Play',
+    pause: 'Pause',
+    reset: 'Reset',
+    turnOff: 'Turn Off',
+    slowMo: 'Slow-Mo (0.25x)',
+    showVectors: 'Show Primary Vectors (v, T, mg)',
+    showAccelerations: 'Show Accelerations (a_c, a_t)',
+    showComponents: 'Show Force Components',
+    showTrajectory: 'Show Motion Trajectory',
+    showGrid: 'Show Angle Grid & Reference',
+    showDynamicsEngine: 'Show Dynamics Engine',
+    angleInspector: 'Angle Inspector (θ)',
+    speedAtTheta: 'Speed at θ:',
+    tensionAtTheta: 'Tension at θ:',
+    dynamicsEngine: 'Dynamics Engine',
+    energyConservation: '1. Energy Conservation',
+    stringTension: '2. String Tension',
+    criticalBoundaryCard: '3. Critical Boundary',
+    currentSpeed: 'Current Speed v:',
+    currentTension: 'Current Tension T:',
+    slackAngle: 'Slack Angle',
+    rigidRodCircle: 'Rigid Rod: Continuous Circle',
+    fullLoopCondition: 'Full Vertical Loop (Complete Circle)',
+    slackCondition: 'Slackening Condition (String Slackens)',
+    slackConditionShort: 'Slackening Condition',
+    stableCondition: 'Stable Condition (Pure Oscillation)',
+    realTime: 'Real-time',
+    fps60: '60 FPS',
+    angle: 'Angle (θ)',
+    speed: 'Speed (v)',
+    tension: 'Tension (T)',
+    centripetal: 'Centripetal a_c',
+    tangential: 'Tangential a_t',
+    totalAccel: 'Total Accel a',
+    kineticE: 'Kinetic E.',
+    potentialE: 'Potential E.',
+    totalE: 'Total E.',
+    slack: 'SLACK',
+    fullLoopTag: 'FULL LOOP',
+    slackenedTag: 'SLACKENED',
+    criticalTag: 'CRITICAL',
+    oscillatingTag: 'OSCILLATING',
+    langToggle: 'বাংলা',
+    langToggleShort: 'বাং',
+    unreachableSlack: 'Unreachable! String slackens at θₛ =',
+    unreachableEnergy: 'Unreachable! Max oscillation angle =',
+    directMode: 'm/s',
+    formulaMode: '√(n·g·L)'
+  },
+  bn: {
+    title: 'উল্লম্ব বৃত্তাকার গতি',
+    titleSuffix: 'ও প্রক্ষেপক ল্যাব',
+    brandSubtitle: 'উদ্ভাস একাডেমিক',
+    stringMode: 'সুতা (String) মোড',
+    rodMode: 'দৃঢ় দণ্ড (Rod) মোড',
+    presets: 'প্রিসেট পরিস্থিতি',
+    autoCalc: 'স্বয়ংক্রিয় গণনা',
+    oscillation: 'সরল দোলন (Oscillation)',
+    slackening: 'সুতা ঢিলা হওয়া (Slackening)',
+    fullLoop: 'পূর্ণ উল্লম্ব বৃত্ত (Full Loop)',
+    criticalBoundary: 'ক্রান্তি বেগ (Critical)',
+    inputParams: 'ইনপুট প্যারামিটার',
+    theta0Label: 'প্রাথমিক মুক্ত কোণ (θ₀)',
+    bot: 'তলদেশ (০°)',
+    hor: 'আনুভূমিক (৯০°)',
+    top: 'শীর্ষ (১৮০°)',
+    initialDir: 'গতির দিক',
+    anticlockwise: 'ঘড়ির বিপরীত (↺)',
+    clockwise: 'ঘড়ির দিক (↻)',
+    v0Label: 'প্রাথমিক বেগ (v₀)',
+    velocity: 'প্রাথমিক বেগ (v₀):',
+    equivFactor: 'সমতুল্য গুণক n (০ - ১০):',
+    factorN: 'গুণক n (০ থেকে ১০):',
+    calcV0: 'গণনাকৃত বেগ v₀:',
+    stringLength: 'সুতার দৈর্ঘ্য (L)',
+    mass: 'বস্তুর ভর (m)',
+    gravity: 'অভিকর্ষজ ত্বরণ (g)',
+    earth: 'পৃথিবী (৯.৮১)',
+    moon: 'চাঁদ (১.৬২)',
+    mars: 'মঙ্গল (৩.৭১)',
+    jupiter: 'বৃহস্পতি (২৪.৭৯)',
+    simControls: 'সিমুলেশন নিয়ন্ত্রণ',
+    play: 'চালু করুন',
+    pause: 'থামান',
+    reset: 'রিসেট',
+    turnOff: 'বন্ধ করুন',
+    slowMo: 'স্লো-মোশন (০.২৫x)',
+    showVectors: 'প্রধান ভেক্টরসমূহ (v, T, mg)',
+    showAccelerations: 'ত্বরণ ভেক্টর (a_c, a_t)',
+    showComponents: 'বলের উপাংশসমূহ',
+    showTrajectory: 'গতির গতিপথ (Trajectory)',
+    showGrid: 'কোণ পরিমাপক গ্রিড ও দাগ',
+    showDynamicsEngine: 'ডাইনামিকস ইঞ্জিন দেখুন',
+    angleInspector: 'কোণ পরিদর্শক (θ)',
+    speedAtTheta: 'θ অবস্থানে বেগ:',
+    tensionAtTheta: 'θ অবস্থানে টান:',
+    dynamicsEngine: 'ডাইনামিকস ইঞ্জিন',
+    energyConservation: '১. শক্তি সংরক্ষণশীলতা',
+    stringTension: '২. সুতার টান সমীকরণ',
+    criticalBoundaryCard: '৩. প্রান্তিক সীমা (Critical)',
+    currentSpeed: 'বর্তমান বেগ v:',
+    currentTension: 'বর্তমান টান T:',
+    slackAngle: 'ঢিলা হওয়ার কোণ',
+    rigidRodCircle: 'দৃঢ় দণ্ড: অবিচ্ছিন্ন বৃত্ত',
+    fullLoopCondition: 'পূর্ণ উল্লম্ব বৃত্ত (সম্পূর্ণ চক্র সম্পন্ন)',
+    slackCondition: 'ঢিলা অবস্থা (সুতার টান শূন্য হয়)',
+    slackConditionShort: 'ঢিলা অবস্থা (Slackening)',
+    stableCondition: 'স্থিতিশীল দোলন (Pure Oscillation)',
+    realTime: 'রিয়েল-টাইম',
+    fps60: '৬০ FPS',
+    angle: 'কোণ (θ)',
+    speed: 'বেগ (v)',
+    tension: 'টান (T)',
+    centripetal: 'কেন্দ্রমুখী a_c',
+    tangential: 'স্পর্শকীয় a_t',
+    totalAccel: 'মোট ত্বরণ a',
+    kineticE: 'গতিশক্তি (KE)',
+    potentialE: 'বিভবশক্তি (PE)',
+    totalE: 'মোট শক্তি (TE)',
+    slack: 'ঢিলা (SLACK)',
+    fullLoopTag: 'পূর্ণ বৃত্ত',
+    slackenedTag: 'ঢিলা হয়েছে',
+    criticalTag: 'ক্রান্তীয়',
+    oscillatingTag: 'দোদুল্যমান',
+    langToggle: 'English',
+    langToggleShort: 'EN',
+    unreachableSlack: 'অপ্রাপ্য কোণ! সুতা ঢিলা হয় θₛ =',
+    unreachableEnergy: 'অপ্রাপ্য কোণ! সর্বোচ্চ দোলন কোণ =',
+    directMode: 'm/s',
+    formulaMode: '√(n·g·L)'
+  }
+};
 
 export default function App() {
   // --- STATE ---
+  const [lang, setLang] = useState<'en' | 'bn'>('bn');
+  const t = translations[lang];
+
   const [mode, setMode] = useState<'string' | 'rod'>('string');
   const [v0, setV0] = useState<number>(5.2);
   const [vInputMode, setVInputMode] = useState<'direct' | 'formula'>('direct');
@@ -30,6 +201,7 @@ export default function App() {
   const [showComponents, setShowComponents] = useState<boolean>(true);
   const [showTrace, setShowTrace] = useState<boolean>(true);
   const [showGrid, setShowGrid] = useState<boolean>(true);
+  const [showDynamicsEngine, setShowDynamicsEngine] = useState<boolean>(false);
 
   // Live telemetry state for React UI
   const [telemetry, setTelemetry] = useState({
@@ -238,8 +410,8 @@ export default function App() {
     if (effRad > maxReachableRad + 1e-4) {
       const maxDeg = (maxReachableRad * 180 / Math.PI).toFixed(1);
       const msg = unreachableType === 'slack'
-        ? `Unreachable! String slackens at θₛ = ${maxDeg}°`
-        : `Unreachable! Max oscillation angle = ${maxDeg}°`;
+        ? `${t.unreachableSlack} ${maxDeg}°`
+        : `${t.unreachableEnergy} ${maxDeg}°`;
       const curY = -L * Math.cos(maxReachableRad);
       const height = curY + L;
       const pe = m * g * height;
@@ -737,16 +909,28 @@ export default function App() {
         {/* BRANDING & HEADER BLOCK (IN SIDEBAR) */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <div className={`w-8 h-8 rounded flex items-center justify-center font-bold text-xl shadow-md ${theme === 'dark' ? 'bg-[#00F2FE] text-[#0B0F17] shadow-cyan-500/20' : 'bg-[#0284c7] text-white shadow-sky-500/20'}`}>U</div>
               <div>
                 <h1 className="text-xs font-bold tracking-tight leading-tight">
-                  VERTICAL CIRCLE <span className={theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}>&amp; PROJECTILE LAB</span>
+                  {t.title} <span className={theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}>{t.titleSuffix}</span>
                 </h1>
-                <div className={`text-[9px] uppercase tracking-widest font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-slate-500'}`}>UDVASH ACADEMIC</div>
+                <div className={`text-[9px] uppercase tracking-widest font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-slate-500'}`}>{t.brandSubtitle}</div>
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setLang(lang === 'en' ? 'bn' : 'en')}
+                className={`px-2 py-1 rounded-lg border text-xs font-bold font-mono transition flex items-center gap-1 ${
+                  theme === 'dark'
+                    ? 'bg-[#0B0F17] border-cyan-500/50 text-[#00F2FE] hover:bg-cyan-500/10'
+                    : 'bg-sky-50 border-sky-300 text-[#0284c7] hover:bg-sky-100'
+                }`}
+                title={lang === 'en' ? 'Switch to Bengali' : 'Switch to English'}
+              >
+                <Languages className="w-3.5 h-3.5" />
+                <span>{lang === 'en' ? 'বাংলা' : 'EN'}</span>
+              </button>
               <button
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 className={`p-1.5 rounded-lg border transition ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-700 text-gray-200 hover:text-[#00F2FE]' : 'bg-slate-100 border-slate-300 text-slate-700 hover:text-[#0284c7]'}`}
@@ -770,13 +954,13 @@ export default function App() {
               onClick={() => setMode('string')}
               className={`flex-1 py-1.5 text-xs font-semibold rounded transition-all text-center ${mode === 'string' ? (theme === 'dark' ? 'bg-[#00F2FE] text-[#0B0F17] shadow-sm' : 'bg-[#0284c7] text-white shadow-sm') : (theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
             >
-              String Mode
+              {t.stringMode}
             </button>
             <button
               onClick={() => setMode('rod')}
               className={`flex-1 py-1.5 text-xs font-semibold rounded transition-all text-center ${mode === 'rod' ? (theme === 'dark' ? 'bg-[#00F2FE] text-[#0B0F17] shadow-sm' : 'bg-[#0284c7] text-white shadow-sm') : (theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
             >
-              Rigid Rod Mode
+              {t.rodMode}
             </button>
           </div>
         </div>
@@ -786,36 +970,36 @@ export default function App() {
           {/* PRESETS SECTION */}
           <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className={`text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>Preset Scenarios</h3>
-              <span className={`text-[10px] font-mono font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-slate-600'}`}>Auto-calculate</span>
+              <h3 className={`text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>{t.presets}</h3>
+              <span className={`text-[10px] font-mono font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-slate-600'}`}>{t.autoCalc}</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => loadPreset('osc')}
                 className={`py-2.5 px-3 border rounded text-left transition group ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-700 hover:border-[#00F2FE]' : 'bg-slate-50 border-slate-200 hover:border-[#0284c7]'}`}
               >
-                <div className="text-xs font-bold text-[#00FF8C] group-hover:underline">Oscillation</div>
+                <div className="text-xs font-bold text-[#00FF8C] group-hover:underline">{t.oscillation}</div>
                 <div className={`text-[10px] font-mono font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>v₀ = {Math.sqrt(1.2 * g * L).toFixed(2)} m/s</div>
               </button>
               <button
                 onClick={() => loadPreset('slack')}
                 className={`py-2.5 px-3 border rounded text-left transition group ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-700 hover:border-[#00F2FE]' : 'bg-slate-50 border-slate-200 hover:border-[#0284c7]'}`}
               >
-                <div className="text-xs font-bold text-amber-500 group-hover:underline">Slackening</div>
+                <div className="text-xs font-bold text-amber-500 group-hover:underline">{t.slackening}</div>
                 <div className={`text-[10px] font-mono font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>v₀ = {Math.sqrt(3.5 * g * L).toFixed(2)} m/s</div>
               </button>
               <button
                 onClick={() => loadPreset('loop')}
                 className={`py-2.5 px-3 border rounded text-left transition group ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-700 hover:border-[#00F2FE]' : 'bg-slate-50 border-slate-200 hover:border-[#0284c7]'}`}
               >
-                <div className={`text-xs font-bold group-hover:underline ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>Full Loop</div>
+                <div className={`text-xs font-bold group-hover:underline ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>{t.fullLoop}</div>
                 <div className={`text-[10px] font-mono font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>v₀ = {Math.sqrt(6.0 * g * L).toFixed(2)} m/s</div>
               </button>
               <button
                 onClick={() => loadPreset('critical')}
                 className={`py-2.5 px-3 border rounded text-left transition group ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-700 hover:border-[#00F2FE]' : 'bg-slate-50 border-slate-200 hover:border-[#0284c7]'}`}
               >
-                <div className="text-xs font-bold text-purple-600 dark:text-purple-400 group-hover:underline">Critical Boundary</div>
+                <div className="text-xs font-bold text-purple-600 dark:text-purple-400 group-hover:underline">{t.criticalBoundary}</div>
                 <div className={`text-[10px] font-mono font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>v₀ = {vLoopMin.toFixed(2)} m/s</div>
               </button>
             </div>
@@ -825,12 +1009,12 @@ export default function App() {
 
           {/* INPUT PARAMETERS SECTION */}
           <section className="space-y-4">
-            <h3 className={`text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>Input Parameters</h3>
+            <h3 className={`text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>{t.inputParams}</h3>
 
             {/* Initial Release Angle Slider */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-medium">
-                <span className={theme === 'dark' ? 'text-slate-200' : 'text-slate-800 font-semibold'}>Initial Release Angle (θ₀)</span>
+                <span className={theme === 'dark' ? 'text-slate-200' : 'text-slate-800 font-semibold'}>{t.theta0Label}</span>
                 <span className={`font-mono font-bold ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>{theta0.toFixed(1)}°</span>
               </div>
               <input
@@ -843,29 +1027,29 @@ export default function App() {
                 className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${theme === 'dark' ? 'bg-[#0B0F17] accent-[#00F2FE]' : 'bg-slate-200 accent-[#0284c7]'}`}
               />
               <div className="grid grid-cols-5 gap-1 pt-1">
-                <button onClick={() => setTheta0(0)} className={`py-1 text-[9px] font-bold rounded border ${theta0 === 0 ? (theme === 'dark' ? 'border-[#00F2FE] text-[#00F2FE] bg-[#0B0F17]' : 'border-[#0284c7] text-[#0284c7] bg-sky-50') : (theme === 'dark' ? 'border-gray-700 text-slate-300' : 'border-slate-300 text-slate-700 bg-white hover:border-slate-400')}`}>0° (Bot)</button>
+                <button onClick={() => setTheta0(0)} className={`py-1 text-[9px] font-bold rounded border ${theta0 === 0 ? (theme === 'dark' ? 'border-[#00F2FE] text-[#00F2FE] bg-[#0B0F17]' : 'border-[#0284c7] text-[#0284c7] bg-sky-50') : (theme === 'dark' ? 'border-gray-700 text-slate-300' : 'border-slate-300 text-slate-700 bg-white hover:border-slate-400')}`}>0° ({t.bot})</button>
                 <button onClick={() => setTheta0(60)} className={`py-1 text-[9px] font-bold rounded border ${theta0 === 60 ? (theme === 'dark' ? 'border-[#00F2FE] text-[#00F2FE] bg-[#0B0F17]' : 'border-[#0284c7] text-[#0284c7] bg-sky-50') : (theme === 'dark' ? 'border-gray-700 text-slate-300' : 'border-slate-300 text-slate-700 bg-white hover:border-slate-400')}`}>60°</button>
-                <button onClick={() => setTheta0(90)} className={`py-1 text-[9px] font-bold rounded border ${theta0 === 90 ? (theme === 'dark' ? 'border-[#00F2FE] text-[#00F2FE] bg-[#0B0F17]' : 'border-[#0284c7] text-[#0284c7] bg-sky-50') : (theme === 'dark' ? 'border-gray-700 text-slate-300' : 'border-slate-300 text-slate-700 bg-white hover:border-slate-400')}`}>90° (Hor)</button>
+                <button onClick={() => setTheta0(90)} className={`py-1 text-[9px] font-bold rounded border ${theta0 === 90 ? (theme === 'dark' ? 'border-[#00F2FE] text-[#00F2FE] bg-[#0B0F17]' : 'border-[#0284c7] text-[#0284c7] bg-sky-50') : (theme === 'dark' ? 'border-gray-700 text-slate-300' : 'border-slate-300 text-slate-700 bg-white hover:border-slate-400')}`}>90° ({t.hor})</button>
                 <button onClick={() => setTheta0(120)} className={`py-1 text-[9px] font-bold rounded border ${theta0 === 120 ? (theme === 'dark' ? 'border-[#00F2FE] text-[#00F2FE] bg-[#0B0F17]' : 'border-[#0284c7] text-[#0284c7] bg-sky-50') : (theme === 'dark' ? 'border-gray-700 text-slate-300' : 'border-slate-300 text-slate-700 bg-white hover:border-slate-400')}`}>120°</button>
-                <button onClick={() => setTheta0(180)} className={`py-1 text-[9px] font-bold rounded border ${theta0 === 180 ? (theme === 'dark' ? 'border-[#00F2FE] text-[#00F2FE] bg-[#0B0F17]' : 'border-[#0284c7] text-[#0284c7] bg-sky-50') : (theme === 'dark' ? 'border-gray-700 text-slate-300' : 'border-slate-300 text-slate-700 bg-white hover:border-slate-400')}`}>180° (Top)</button>
+                <button onClick={() => setTheta0(180)} className={`py-1 text-[9px] font-bold rounded border ${theta0 === 180 ? (theme === 'dark' ? 'border-[#00F2FE] text-[#00F2FE] bg-[#0B0F17]' : 'border-[#0284c7] text-[#0284c7] bg-sky-50') : (theme === 'dark' ? 'border-gray-700 text-slate-300' : 'border-slate-300 text-slate-700 bg-white hover:border-slate-400')}`}>180° ({t.top})</button>
               </div>
             </div>
 
             {/* Launch Direction Toggle */}
             <div className="space-y-1.5">
-              <div className={`text-xs font-semibold ${theme === 'dark' ? 'text-slate-200' : 'text-slate-800'}`}>Initial Direction</div>
+              <div className={`text-xs font-semibold ${theme === 'dark' ? 'text-slate-200' : 'text-slate-800'}`}>{t.initialDir}</div>
               <div className={`flex rounded-lg p-1 border ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-700' : 'bg-slate-100 border-slate-300'}`}>
                 <button
                   onClick={() => setInitialDir('anticlockwise')}
                   className={`flex-1 py-1 text-[10px] font-bold rounded transition-all text-center ${initialDir === 'anticlockwise' ? (theme === 'dark' ? 'bg-[#00F2FE] text-[#0B0F17]' : 'bg-[#0284c7] text-white') : (theme === 'dark' ? 'text-gray-300' : 'text-slate-700 hover:text-slate-900')}`}
                 >
-                  Anticlockwise (↺)
+                  {t.anticlockwise}
                 </button>
                 <button
                   onClick={() => setInitialDir('clockwise')}
                   className={`flex-1 py-1 text-[10px] font-bold rounded transition-all text-center ${initialDir === 'clockwise' ? (theme === 'dark' ? 'bg-[#00F2FE] text-[#0B0F17]' : 'bg-[#0284c7] text-white') : (theme === 'dark' ? 'text-gray-300' : 'text-slate-700 hover:text-slate-900')}`}
                 >
-                  Clockwise (↻)
+                  {t.clockwise}
                 </button>
               </div>
             </div>
@@ -873,19 +1057,19 @@ export default function App() {
             {/* Initial Velocity v0 Controls (Direct m/s vs √(n g L) Formula) */}
             <div className="space-y-2.5">
               <div className="flex justify-between items-center text-xs font-medium">
-                <span className={theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}>Initial Velocity (v₀)</span>
+                <span className={theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}>{t.v0Label}</span>
                 <div className={`flex rounded p-0.5 border text-[10px] font-bold ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-700' : 'bg-slate-100 border-slate-300'}`}>
                   <button
                     onClick={() => setVInputMode('direct')}
                     className={`px-2.5 py-0.5 rounded transition ${vInputMode === 'direct' ? (theme === 'dark' ? 'bg-[#00F2FE] text-[#0B0F17]' : 'bg-[#0284c7] text-white') : (theme === 'dark' ? 'text-gray-400' : 'text-slate-600')}`}
                   >
-                    m/s
+                    {t.directMode}
                   </button>
                   <button
                     onClick={() => setVInputMode('formula')}
                     className={`px-2.5 py-0.5 rounded transition ${vInputMode === 'formula' ? (theme === 'dark' ? 'bg-[#00F2FE] text-[#0B0F17]' : 'bg-[#0284c7] text-white') : (theme === 'dark' ? 'text-gray-400' : 'text-slate-600')}`}
                   >
-                    &radic;(n·g·L)
+                    {t.formulaMode}
                   </button>
                 </div>
               </div>
@@ -893,7 +1077,7 @@ export default function App() {
               {vInputMode === 'direct' ? (
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-mono">
-                    <span className={theme === 'dark' ? 'text-gray-300 font-semibold' : 'text-slate-700 font-semibold'}>Velocity (v₀):</span>
+                    <span className={theme === 'dark' ? 'text-gray-300 font-semibold' : 'text-slate-700 font-semibold'}>{t.velocity}</span>
                     <span className={`font-bold ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>{v0.toFixed(2)} m/s</span>
                   </div>
                   <input
@@ -909,7 +1093,7 @@ export default function App() {
                   {/* Factor n Slider for 0 to 10 in m/s mode as well */}
                   <div className={`p-2 rounded-lg border space-y-1.5 ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-800' : 'bg-slate-50 border-slate-200'}`}>
                     <div className="flex justify-between items-center text-[11px] font-mono">
-                      <span className={theme === 'dark' ? 'text-gray-300 font-semibold' : 'text-slate-700 font-semibold'}>Equivalent Factor n (0 - 10):</span>
+                      <span className={theme === 'dark' ? 'text-gray-300 font-semibold' : 'text-slate-700 font-semibold'}>{t.equivFactor}</span>
                       <span className="font-bold text-emerald-600 dark:text-[#00FF8C]">n = {nFactor.toFixed(2)}</span>
                     </div>
                     <input
@@ -929,7 +1113,7 @@ export default function App() {
               ) : (
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-xs font-mono">
-                    <span className={theme === 'dark' ? 'text-gray-300 font-semibold' : 'text-slate-700 font-semibold'}>Factor n (0 to 10):</span>
+                    <span className={theme === 'dark' ? 'text-gray-300 font-semibold' : 'text-slate-700 font-semibold'}>{t.factorN}</span>
                     <span className={`font-bold ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>n = {nFactor.toFixed(2)}</span>
                   </div>
                   <input
@@ -943,7 +1127,7 @@ export default function App() {
                   />
 
                   <div className={`text-[11px] font-mono px-2.5 py-1.5 rounded-lg border flex justify-between items-center ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-800 text-gray-200' : 'bg-slate-50 border-slate-200 text-slate-800 font-medium'}`}>
-                    <span>Calculated Velocity v₀:</span>
+                    <span>{t.calcV0}</span>
                     <span className="font-bold text-[#0284c7] dark:text-[#00F2FE] text-sm">&radic;({nFactor.toFixed(2)}gL) = {v0.toFixed(2)} m/s</span>
                   </div>
 
@@ -962,7 +1146,7 @@ export default function App() {
             {/* Length L */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-medium">
-                <span className={theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}>String Length (L)</span>
+                <span className={theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}>{t.stringLength}</span>
                 <span className={`font-mono font-bold ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>{L.toFixed(2)} m</span>
               </div>
               <input
@@ -979,7 +1163,7 @@ export default function App() {
             {/* Mass m */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-medium">
-                <span className={theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}>Mass (m)</span>
+                <span className={theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}>{t.mass}</span>
                 <span className={`font-mono font-bold ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>{m.toFixed(2)} kg</span>
               </div>
               <input
@@ -996,7 +1180,7 @@ export default function App() {
             {/* Gravity Presets */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-medium">
-                <span className={theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}>Gravity Acceleration (g)</span>
+                <span className={theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}>{t.gravity}</span>
                 <span className={`font-mono font-bold ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>{g.toFixed(2)} m/s²</span>
               </div>
               <div className="grid grid-cols-2 gap-2 mt-2">
@@ -1004,25 +1188,25 @@ export default function App() {
                   onClick={() => handleGChange(9.81)}
                   className={`py-2 rounded text-[10px] uppercase font-bold transition border ${g === 9.81 ? (theme === 'dark' ? 'border-[#00F2FE] text-[#00F2FE] bg-[#0B0F17]' : 'border-[#0284c7] text-[#0284c7] bg-sky-50') : (theme === 'dark' ? 'border-gray-700 text-slate-300 bg-[#0B0F17]' : 'border-slate-200 text-slate-700 bg-slate-50 hover:border-slate-400')}`}
                 >
-                  Earth (9.81)
+                  {t.earth}
                 </button>
                 <button
                   onClick={() => handleGChange(1.62)}
                   className={`py-2 rounded text-[10px] uppercase font-bold transition border ${g === 1.62 ? (theme === 'dark' ? 'border-[#00F2FE] text-[#00F2FE] bg-[#0B0F17]' : 'border-[#0284c7] text-[#0284c7] bg-sky-50') : (theme === 'dark' ? 'border-gray-700 text-slate-300 bg-[#0B0F17]' : 'border-slate-200 text-slate-700 bg-slate-50 hover:border-slate-400')}`}
                 >
-                  Moon (1.62)
+                  {t.moon}
                 </button>
                 <button
                   onClick={() => handleGChange(3.71)}
                   className={`py-2 rounded text-[10px] uppercase font-bold transition border ${g === 3.71 ? (theme === 'dark' ? 'border-[#00F2FE] text-[#00F2FE] bg-[#0B0F17]' : 'border-[#0284c7] text-[#0284c7] bg-sky-50') : (theme === 'dark' ? 'border-gray-700 text-slate-300 bg-[#0B0F17]' : 'border-slate-200 text-slate-700 bg-slate-50 hover:border-slate-400')}`}
                 >
-                  Mars (3.71)
+                  {t.mars}
                 </button>
                 <button
                   onClick={() => handleGChange(24.79)}
                   className={`py-2 rounded text-[10px] uppercase font-bold transition border ${g === 24.79 ? (theme === 'dark' ? 'border-[#00F2FE] text-[#00F2FE] bg-[#0B0F17]' : 'border-[#0284c7] text-[#0284c7] bg-sky-50') : (theme === 'dark' ? 'border-gray-700 text-slate-300 bg-[#0B0F17]' : 'border-slate-200 text-slate-700 bg-slate-50 hover:border-slate-400')}`}
                 >
-                  Jupiter (24.79)
+                  {t.jupiter}
                 </button>
               </div>
             </div>
@@ -1032,7 +1216,7 @@ export default function App() {
 
           {/* SIMULATION CONTROLS SECTION */}
           <section className="space-y-4">
-            <h3 className={`text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>Simulation Controls</h3>
+            <h3 className={`text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>{t.simControls}</h3>
             
             <div className="grid grid-cols-2 gap-3">
               <button
@@ -1040,14 +1224,14 @@ export default function App() {
                 className={`flex items-center justify-center gap-2 py-3 rounded font-bold text-xs uppercase transition shadow-md ${theme === 'dark' ? 'bg-[#00F2FE] text-[#0B0F17] shadow-cyan-500/20 hover:bg-[#00d8e4]' : 'bg-[#0284c7] text-white shadow-sky-500/20 hover:bg-[#0369a1]'}`}
               >
                 {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-                {isPlaying ? 'Pause' : 'Play'}
+                {isPlaying ? t.pause : t.play}
               </button>
               <button
                 onClick={resetSim}
                 className={`flex items-center justify-center gap-2 py-3 rounded font-bold text-xs uppercase transition ${theme === 'dark' ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-slate-200 text-slate-800 hover:bg-slate-300'}`}
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                Reset
+                {t.reset}
               </button>
             </div>
 
@@ -1060,13 +1244,13 @@ export default function App() {
                 className={`py-2.5 border rounded font-bold text-xs uppercase transition flex items-center justify-center gap-1.5 ${theme === 'dark' ? 'bg-[#0B0F17] border-rose-500/40 text-rose-400 hover:bg-rose-500/10 hover:border-rose-500' : 'bg-rose-50 border-rose-300 text-rose-600 hover:bg-rose-100 hover:border-rose-400'}`}
                 title="Turn Off Simulation"
               >
-                <Power className="w-3.5 h-3.5" /> Turn Off
+                <Power className="w-3.5 h-3.5" /> {t.turnOff}
               </button>
               <button
                 onClick={() => setIsSlowMo(!isSlowMo)}
                 className={`py-2.5 border rounded font-bold text-xs uppercase transition ${isSlowMo ? 'border-amber-500 text-amber-500 bg-amber-500/10' : (theme === 'dark' ? 'bg-[#0B0F17] border-gray-700 text-slate-200 hover:border-gray-500' : 'bg-slate-50 border-slate-300 text-slate-700 hover:border-slate-400')}`}
               >
-                Slow-Mo (0.25x)
+                {t.slowMo}
               </button>
             </div>
 
@@ -1078,7 +1262,7 @@ export default function App() {
                   onChange={(e) => setShowVectors(e.target.checked)}
                   className={`w-4 h-4 rounded cursor-pointer ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-700 accent-[#00F2FE]' : 'bg-slate-100 border-slate-300 accent-[#0284c7]'}`}
                 />
-                <span className={`text-xs ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>Show Primary Vectors (v, T, mg)</span>
+                <span className={`text-xs ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>{t.showVectors}</span>
               </label>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
@@ -1087,7 +1271,7 @@ export default function App() {
                   onChange={(e) => setShowAccelerations(e.target.checked)}
                   className={`w-4 h-4 rounded cursor-pointer ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-700 accent-[#00F2FE]' : 'bg-slate-100 border-slate-300 accent-[#0284c7]'}`}
                 />
-                <span className={`text-xs ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>Show Accelerations (a_c, a_t)</span>
+                <span className={`text-xs ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>{t.showAccelerations}</span>
               </label>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
@@ -1096,7 +1280,7 @@ export default function App() {
                   onChange={(e) => setShowComponents(e.target.checked)}
                   className={`w-4 h-4 rounded cursor-pointer ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-700 accent-[#00F2FE]' : 'bg-slate-100 border-slate-300 accent-[#0284c7]'}`}
                 />
-                <span className={`text-xs ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>Show Force Components</span>
+                <span className={`text-xs ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>{t.showComponents}</span>
               </label>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
@@ -1105,7 +1289,7 @@ export default function App() {
                   onChange={(e) => setShowTrace(e.target.checked)}
                   className={`w-4 h-4 rounded cursor-pointer ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-700 accent-[#00F2FE]' : 'bg-slate-100 border-slate-300 accent-[#0284c7]'}`}
                 />
-                <span className={`text-xs ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>Show Motion Trajectory</span>
+                <span className={`text-xs ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>{t.showTrajectory}</span>
               </label>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
@@ -1114,7 +1298,16 @@ export default function App() {
                   onChange={(e) => setShowGrid(e.target.checked)}
                   className={`w-4 h-4 rounded cursor-pointer ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-700 accent-[#00F2FE]' : 'bg-slate-100 border-slate-300 accent-[#0284c7]'}`}
                 />
-                <span className={`text-xs ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>Show Angle Grid &amp; Reference</span>
+                <span className={`text-xs ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>{t.showGrid}</span>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showDynamicsEngine}
+                  onChange={(e) => setShowDynamicsEngine(e.target.checked)}
+                  className={`w-4 h-4 rounded cursor-pointer ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-700 accent-[#00F2FE]' : 'bg-slate-100 border-slate-300 accent-[#0284c7]'}`}
+                />
+                <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>{t.showDynamicsEngine}</span>
               </label>
             </div>
           </section>
@@ -1138,66 +1331,121 @@ export default function App() {
 
           <canvas ref={canvasRef} className="w-full h-full block cursor-crosshair relative z-0" />
 
-          {/* ANGLE INSPECTOR OVERLAY CARD (TOP-LEFT) */}
-          <div className={`absolute top-6 left-6 w-80 border rounded-xl p-4 shadow-2xl z-20 backdrop-blur-md transition-colors ${theme === 'dark' ? 'bg-[#161B26]/90 border-gray-700 text-white' : 'bg-white/95 border-slate-200 text-slate-800 shadow-slate-300/50'}`}>
-            <div className="flex justify-between items-center mb-2">
-              <span className={`text-[10px] font-black tracking-[0.2em] uppercase ${theme === 'dark' ? 'text-[#00FF8C]' : 'text-emerald-600'}`}>
-                Angle Inspector (&theta;)
-              </span>
-              <span className={`font-mono font-bold text-xs ${inspectData.isUnreachable ? 'text-rose-500' : (theme === 'dark' ? 'text-[#00FF8C]' : 'text-emerald-600')}`}>
-                &theta; = {scrubAngle.toFixed(1)}°
-              </span>
-            </div>
-
-            <input
-              type="range"
-              min="0"
-              max="360"
-              step="0.5"
-              value={scrubAngle}
-              onChange={(e) => setScrubAngle(parseFloat(e.target.value))}
-              className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${theme === 'dark' ? 'bg-[#0B0F17] accent-[#00FF8C]' : 'bg-slate-200 accent-emerald-600'}`}
-            />
-
-            <div className="grid grid-cols-4 gap-1 my-2">
-              <button onClick={() => setScrubAngle(0)} className={`py-1 text-[9px] font-mono font-bold rounded border ${theme === 'dark' ? 'border-gray-700 text-slate-300 hover:border-gray-500 bg-[#0B0F17]' : 'border-slate-300 text-slate-700 hover:border-slate-400 bg-slate-50'}`}>0° (Bot)</button>
-              <button onClick={() => setScrubAngle(90)} className={`py-1 text-[9px] font-mono font-bold rounded border ${theme === 'dark' ? 'border-gray-700 text-slate-300 hover:border-gray-500 bg-[#0B0F17]' : 'border-slate-300 text-slate-700 hover:border-slate-400 bg-slate-50'}`}>90° (Right)</button>
-              <button onClick={() => setScrubAngle(180)} className={`py-1 text-[9px] font-mono font-bold rounded border ${theme === 'dark' ? 'border-gray-700 text-slate-300 hover:border-gray-500 bg-[#0B0F17]' : 'border-slate-300 text-slate-700 hover:border-slate-400 bg-slate-50'}`}>180° (Top)</button>
-              <button onClick={() => setScrubAngle(270)} className={`py-1 text-[9px] font-mono font-bold rounded border ${theme === 'dark' ? 'border-gray-700 text-slate-300 hover:border-gray-500 bg-[#0B0F17]' : 'border-slate-300 text-slate-700 hover:border-slate-400 bg-slate-50'}`}>270° (Left)</button>
-            </div>
-
-            {inspectData.isUnreachable ? (
-              <div className="p-2 rounded bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-[10px] font-mono font-semibold">
-                ⚠️ {inspectData.msg}
+          {/* TOP-RIGHT OVERLAY CARDS CONTAINER (ANGLE INSPECTOR & DYNAMICS ENGINE) */}
+          <div className="absolute top-6 right-6 flex flex-col gap-3.5 z-20 items-end max-w-xs sm:max-w-sm pointer-events-auto">
+            {/* ANGLE INSPECTOR OVERLAY CARD */}
+            <div className={`w-80 border rounded-xl p-4 shadow-2xl backdrop-blur-md transition-colors ${theme === 'dark' ? 'bg-[#161B26]/90 border-gray-700 text-white' : 'bg-white/95 border-slate-200 text-slate-800 shadow-slate-300/50'}`}>
+              <div className="flex justify-between items-center mb-2">
+                <span className={`text-[10px] font-black tracking-[0.2em] uppercase ${theme === 'dark' ? 'text-[#00FF8C]' : 'text-emerald-600'}`}>
+                  {t.angleInspector}
+                </span>
+                <span className={`font-mono font-bold text-xs ${inspectData.isUnreachable ? 'text-rose-500' : (theme === 'dark' ? 'text-[#00FF8C]' : 'text-emerald-600')}`}>
+                  &theta; = {scrubAngle.toFixed(1)}°
+                </span>
               </div>
-            ) : (
-              <div className="space-y-1.5 pt-2 text-[11px] font-mono border-t border-slate-200 dark:border-gray-700/40">
-                <div className="flex justify-between items-center">
-                  <span className={theme === 'dark' ? 'text-gray-200 font-medium' : 'text-slate-800 font-semibold'}>Speed at &theta;:</span>
-                  <span className={`font-bold ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-slate-900'}`}>{inspectData.speed.toFixed(2)} m/s</span>
+
+              <input
+                type="range"
+                min="0"
+                max="360"
+                step="0.5"
+                value={scrubAngle}
+                onChange={(e) => setScrubAngle(parseFloat(e.target.value))}
+                className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${theme === 'dark' ? 'bg-[#0B0F17] accent-[#00FF8C]' : 'bg-slate-200 accent-emerald-600'}`}
+              />
+
+              <div className="grid grid-cols-4 gap-1 my-2">
+                <button onClick={() => setScrubAngle(0)} className={`py-1 text-[9px] font-mono font-bold rounded border ${theme === 'dark' ? 'border-gray-700 text-slate-300 hover:border-gray-500 bg-[#0B0F17]' : 'border-slate-300 text-slate-700 hover:border-slate-400 bg-slate-50'}`}>0° ({t.bot})</button>
+                <button onClick={() => setScrubAngle(90)} className={`py-1 text-[9px] font-mono font-bold rounded border ${theme === 'dark' ? 'border-gray-700 text-slate-300 hover:border-gray-500 bg-[#0B0F17]' : 'border-slate-300 text-slate-700 hover:border-slate-400 bg-slate-50'}`}>90°</button>
+                <button onClick={() => setScrubAngle(180)} className={`py-1 text-[9px] font-mono font-bold rounded border ${theme === 'dark' ? 'border-gray-700 text-slate-300 hover:border-gray-500 bg-[#0B0F17]' : 'border-slate-300 text-slate-700 hover:border-slate-400 bg-slate-50'}`}>180° ({t.top})</button>
+                <button onClick={() => setScrubAngle(270)} className={`py-1 text-[9px] font-mono font-bold rounded border ${theme === 'dark' ? 'border-gray-700 text-slate-300 hover:border-gray-500 bg-[#0B0F17]' : 'border-slate-300 text-slate-700 hover:border-slate-400 bg-slate-50'}`}>270°</button>
+              </div>
+
+              {inspectData.isUnreachable ? (
+                <div className="p-2 rounded bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-[10px] font-mono font-semibold">
+                  ⚠️ {inspectData.msg}
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className={theme === 'dark' ? 'text-gray-200 font-medium' : 'text-slate-800 font-semibold'}>Tension at &theta;:</span>
-                  <span className={`font-bold ${theme === 'dark' ? 'text-[#00FF8C]' : 'text-slate-900'}`}>{inspectData.tension.toFixed(2)} N</span>
+              ) : (
+                <div className="space-y-1.5 pt-2 text-[11px] font-mono border-t border-slate-200 dark:border-gray-700/40">
+                  <div className="flex justify-between items-center">
+                    <span className={theme === 'dark' ? 'text-gray-200 font-medium' : 'text-slate-800 font-semibold'}>{t.speedAtTheta}</span>
+                    <span className={`font-bold ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-slate-900'}`}>{inspectData.speed.toFixed(2)} m/s</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className={theme === 'dark' ? 'text-gray-200 font-medium' : 'text-slate-800 font-semibold'}>{t.tensionAtTheta}</span>
+                    <span className={`font-bold ${theme === 'dark' ? 'text-[#00FF8C]' : 'text-slate-900'}`}>{inspectData.tension.toFixed(2)} N</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5 text-[10px] pt-0.5">
+                    <div className={`p-1.5 rounded flex justify-between border ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-800' : 'bg-slate-100 border-slate-200'}`}>
+                      <span className={`font-sans font-bold ${theme === 'dark' ? 'text-amber-400' : 'text-amber-800'}`}>a_c:</span>
+                      <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{inspectData.ac.toFixed(2)} m/s²</span>
+                    </div>
+                    <div className={`p-1.5 rounded flex justify-between border ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-800' : 'bg-slate-100 border-slate-200'}`}>
+                      <span className={`font-sans font-bold ${theme === 'dark' ? 'text-pink-400' : 'text-pink-800'}`}>a_t:</span>
+                      <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{inspectData.at.toFixed(2)} m/s²</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                    <div className={`p-1.5 rounded flex justify-between border ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-800' : 'bg-slate-100 border-slate-200'}`}>
+                      <span className={`font-sans font-bold ${theme === 'dark' ? 'text-cyan-400' : 'text-sky-800'}`}>KE:</span>
+                      <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{inspectData.ke.toFixed(1)} J</span>
+                    </div>
+                    <div className={`p-1.5 rounded flex justify-between border ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-800' : 'bg-slate-100 border-slate-200'}`}>
+                      <span className={`font-sans font-bold ${theme === 'dark' ? 'text-cyan-400' : 'text-sky-800'}`}>PE:</span>
+                      <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{inspectData.pe.toFixed(1)} J</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-1.5 text-[10px] pt-0.5">
-                  <div className={`p-1.5 rounded flex justify-between border ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-800' : 'bg-slate-100 border-slate-200'}`}>
-                    <span className={`font-sans font-bold ${theme === 'dark' ? 'text-amber-400' : 'text-amber-800'}`}>a_c:</span>
-                    <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{inspectData.ac.toFixed(2)} m/s²</span>
+              )}
+            </div>
+
+            {/* EQUATION & DYNAMICS CALCULATION OVERLAY CARD */}
+            {showDynamicsEngine && (
+              <div className={`w-80 border rounded-xl p-5 shadow-2xl backdrop-blur-md transition-colors ${theme === 'dark' ? 'bg-[#161B26]/90 border-gray-700 text-white' : 'bg-white/95 border-slate-200 text-slate-800 shadow-slate-300/50'}`}>
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-black tracking-[0.2em] uppercase ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>{t.dynamicsEngine}</span>
+                    <div className={`px-2 py-0.5 rounded text-[9px] font-bold font-mono tracking-wide ${
+                      v0 >= vLoopMin ? (theme === 'dark' ? 'bg-cyan-500/20 text-[#00F2FE]' : 'bg-sky-100 text-[#0284c7] border border-sky-300') :
+                      mode === 'string' && v0 > vOscMax ? (telemetry.isSlackened ? 'bg-orange-500/20 text-orange-400' : 'bg-amber-500/20 text-amber-500') :
+                      (theme === 'dark' ? 'bg-emerald-500/20 text-[#00FF8C]' : 'bg-emerald-100 text-emerald-700 border border-emerald-300')
+                    }`}>
+                      {v0 >= vLoopMin ? t.fullLoopTag : mode === 'string' && v0 > vOscMax ? (telemetry.isSlackened ? t.slackenedTag : t.criticalTag) : t.oscillatingTag}
+                    </div>
                   </div>
-                  <div className={`p-1.5 rounded flex justify-between border ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-800' : 'bg-slate-100 border-slate-200'}`}>
-                    <span className={`font-sans font-bold ${theme === 'dark' ? 'text-pink-400' : 'text-pink-800'}`}>a_t:</span>
-                    <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{inspectData.at.toFixed(2)} m/s²</span>
-                  </div>
+                  <button
+                    onClick={() => setShowDynamicsEngine(false)}
+                    className={`p-1 rounded-md transition ${theme === 'dark' ? 'text-gray-400 hover:text-white hover:bg-gray-800' : 'text-slate-400 hover:text-slate-800 hover:bg-slate-100'}`}
+                    title="Close Dynamics Engine"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-                <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-                  <div className={`p-1.5 rounded flex justify-between border ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-800' : 'bg-slate-100 border-slate-200'}`}>
-                    <span className={`font-sans font-bold ${theme === 'dark' ? 'text-cyan-400' : 'text-sky-800'}`}>KE:</span>
-                    <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{inspectData.ke.toFixed(1)} J</span>
+
+                <div className="space-y-4 font-mono text-xs">
+                  <div className="space-y-1">
+                    <div className={`text-[10px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>{t.energyConservation}</div>
+                    <div className={`text-sm font-bold ${theme === 'dark' ? 'text-cyan-50' : 'text-slate-900'}`}>v² = v₀² - 2gL(1 - cos θ)</div>
+                    <div className="text-xs mt-0.5 flex justify-between">
+                      <span className={`font-sans ${theme === 'dark' ? 'text-gray-200' : 'text-slate-700 font-medium'}`}>{t.currentSpeed}</span>
+                      <span className={`font-bold ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>{telemetry.speed.toFixed(2)} m/s</span>
+                    </div>
                   </div>
-                  <div className={`p-1.5 rounded flex justify-between border ${theme === 'dark' ? 'bg-[#0B0F17] border-gray-800' : 'bg-slate-100 border-slate-200'}`}>
-                    <span className={`font-sans font-bold ${theme === 'dark' ? 'text-cyan-400' : 'text-sky-800'}`}>PE:</span>
-                    <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{inspectData.pe.toFixed(1)} J</span>
+
+                  <div className="space-y-1">
+                    <div className={`text-[10px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>{t.stringTension}</div>
+                    <div className={`text-sm font-bold ${theme === 'dark' ? 'text-cyan-50' : 'text-slate-900'}`}>T = m(v²/L + g cos θ)</div>
+                    <div className="text-xs mt-0.5 flex justify-between">
+                      <span className={`font-sans ${theme === 'dark' ? 'text-gray-200' : 'text-slate-700 font-medium'}`}>{t.currentTension}</span>
+                      <span className={`font-bold ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>{telemetry.isSlackened ? `0.00 N (${t.slack})` : telemetry.tension.toFixed(2) + " N"}</span>
+                    </div>
+                  </div>
+
+                  <div className={`pt-2 border-t space-y-1 ${theme === 'dark' ? 'border-gray-700' : 'border-slate-200'}`}>
+                    <div className={`text-[10px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>{t.criticalBoundaryCard}</div>
+                    <div className={`text-xs italic mt-1 font-semibold ${theme === 'dark' ? 'text-gray-100' : 'text-slate-800'}`}>
+                      {mode === 'string' ? `${t.slackAngle} θₛ = ${telemetry.thetaS}` : t.rigidRodCircle}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1220,110 +1468,87 @@ export default function App() {
               }`} />
               <span>
                 {v0 >= vLoopMin
-                  ? 'Full Vertical Loop (Complete Circle)'
+                  ? t.fullLoopCondition
                   : mode === 'string' && v0 > vOscMax
-                  ? (telemetry.isSlackened ? 'Slackening Condition (String Slackens)' : 'Slackening Condition')
-                  : 'Stable Condition (Pure Oscillation)'}
+                  ? (telemetry.isSlackened ? t.slackCondition : t.slackConditionShort)
+                  : t.stableCondition}
               </span>
-            </div>
-          </div>
-
-          {/* EQUATION & DYNAMICS CALCULATION OVERLAY CARD (TOP-RIGHT) */}
-          <div className={`absolute top-6 right-6 w-80 border rounded-xl p-5 shadow-2xl z-20 backdrop-blur-md transition-colors ${theme === 'dark' ? 'bg-[#161B26]/90 border-gray-700 text-white' : 'bg-white/95 border-slate-200 text-slate-800 shadow-slate-300/50'}`}>
-            <div className="flex justify-between items-center mb-4">
-              <span className={`text-[10px] font-black tracking-[0.2em] uppercase ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>Dynamics Engine</span>
-              <div className={`px-2 py-0.5 rounded text-[9px] font-bold font-mono tracking-wide ${
-                v0 >= vLoopMin ? (theme === 'dark' ? 'bg-cyan-500/20 text-[#00F2FE]' : 'bg-sky-100 text-[#0284c7] border border-sky-300') :
-                mode === 'string' && v0 > vOscMax ? (telemetry.isSlackened ? 'bg-orange-500/20 text-orange-400' : 'bg-amber-500/20 text-amber-500') :
-                (theme === 'dark' ? 'bg-emerald-500/20 text-[#00FF8C]' : 'bg-emerald-100 text-emerald-700 border border-emerald-300')
-              }`}>
-                {v0 >= vLoopMin ? 'FULL LOOP' : mode === 'string' && v0 > vOscMax ? (telemetry.isSlackened ? 'SLACKENED' : 'CRITICAL') : 'OSCILLATING'}
-              </div>
-            </div>
-
-            <div className="space-y-4 font-mono text-xs">
-              <div className="space-y-1">
-                <div className={`text-[10px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>1. Energy Conservation</div>
-                <div className={`text-sm font-bold ${theme === 'dark' ? 'text-cyan-50' : 'text-slate-900'}`}>v² = v₀² - 2gL(1 - cos θ)</div>
-                <div className="text-xs mt-0.5 flex justify-between">
-                  <span className={`font-sans ${theme === 'dark' ? 'text-gray-200' : 'text-slate-700 font-medium'}`}>Current Speed v:</span>
-                  <span className={`font-bold ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>{telemetry.speed.toFixed(2)} m/s</span>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <div className={`text-[10px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>2. String Tension</div>
-                <div className={`text-sm font-bold ${theme === 'dark' ? 'text-cyan-50' : 'text-slate-900'}`}>T = m(v²/L + g cos θ)</div>
-                <div className="text-xs mt-0.5 flex justify-between">
-                  <span className={`font-sans ${theme === 'dark' ? 'text-gray-200' : 'text-slate-700 font-medium'}`}>Current Tension T:</span>
-                  <span className={`font-bold ${theme === 'dark' ? 'text-[#00F2FE]' : 'text-[#0284c7]'}`}>{telemetry.isSlackened ? "0.00 N (SLACK)" : telemetry.tension.toFixed(2) + " N"}</span>
-                </div>
-              </div>
-
-              <div className={`pt-2 border-t space-y-1 ${theme === 'dark' ? 'border-gray-700' : 'border-slate-200'}`}>
-                <div className={`text-[10px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>3. Critical Boundary</div>
-                <div className={`text-xs italic mt-1 font-semibold ${theme === 'dark' ? 'text-gray-100' : 'text-slate-800'}`}>
-                  {mode === 'string' ? `Slack Angle θₛ = ${telemetry.thetaS}` : 'Rigid Rod: Continuous Circle'}
-                </div>
-              </div>
             </div>
           </div>
 
           {/* TELEMETRY PROBE (BOTTOM-RIGHT) */}
           <div className={`absolute bottom-6 right-6 w-88 grid grid-cols-3 gap-px rounded-lg overflow-hidden shadow-2xl z-20 font-mono border ${theme === 'dark' ? 'bg-gray-800 border-gray-800' : 'bg-slate-300 border-slate-300 shadow-slate-300/50'}`}>
             <div className={`p-2.5 ${theme === 'dark' ? 'bg-[#161B26]' : 'bg-white'}`}>
-              <div className={`text-[9px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>Angle (θ)</div>
+              <div className={`text-[9px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>{t.angle}</div>
               <div className={`text-base font-bold ${theme === 'dark' ? 'text-[#00FF8C]' : 'text-[#0284c7]'}`}>{telemetry.thetaDeg.toFixed(1)}°</div>
             </div>
             <div className={`p-2.5 ${theme === 'dark' ? 'bg-[#161B26]' : 'bg-white'}`}>
-              <div className={`text-[9px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>Speed (v)</div>
+              <div className={`text-[9px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>{t.speed}</div>
               <div className={`text-base font-bold ${theme === 'dark' ? 'text-[#00FF8C]' : 'text-[#0284c7]'}`}>{telemetry.speed.toFixed(2)} m/s</div>
             </div>
             <div className={`p-2.5 ${theme === 'dark' ? 'bg-[#161B26]' : 'bg-white'}`}>
-              <div className={`text-[9px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>Tension (T)</div>
-              <div className={`text-base font-bold ${telemetry.isSlackened ? 'text-rose-400' : (theme === 'dark' ? 'text-[#00FF8C]' : 'text-[#0284c7]')}`}>{telemetry.isSlackened ? 'SLACK' : telemetry.tension.toFixed(1) + ' N'}</div>
+              <div className={`text-[9px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>{t.tension}</div>
+              <div className={`text-base font-bold ${telemetry.isSlackened ? 'text-rose-400' : (theme === 'dark' ? 'text-[#00FF8C]' : 'text-[#0284c7]')}`}>{telemetry.isSlackened ? t.slack : telemetry.tension.toFixed(1) + ' N'}</div>
             </div>
 
             {showAccelerations && (
               <>
                 <div className={`p-2.5 ${theme === 'dark' ? 'bg-[#161B26]' : 'bg-white'}`}>
-                  <div className={`text-[9px] uppercase font-sans font-bold text-amber-700 dark:text-amber-500`}>Centripetal a_c</div>
+                  <div className={`text-[9px] uppercase font-sans font-bold text-amber-700 dark:text-amber-500`}>{t.centripetal}</div>
                   <div className={`text-sm font-bold ${theme === 'dark' ? 'text-amber-400' : 'text-amber-700'}`}>{telemetry.ac.toFixed(2)} m/s²</div>
                 </div>
                 <div className={`p-2.5 ${theme === 'dark' ? 'bg-[#161B26]' : 'bg-white'}`}>
-                  <div className={`text-[9px] uppercase font-sans font-bold text-pink-700 dark:text-pink-500`}>Tangential a_t</div>
+                  <div className={`text-[9px] uppercase font-sans font-bold text-pink-700 dark:text-pink-500`}>{t.tangential}</div>
                   <div className={`text-sm font-bold ${theme === 'dark' ? 'text-pink-400' : 'text-pink-700'}`}>{telemetry.at.toFixed(2)} m/s²</div>
                 </div>
                 <div className={`p-2.5 ${theme === 'dark' ? 'bg-[#161B26]' : 'bg-white'}`}>
-                  <div className={`text-[9px] uppercase font-sans font-bold text-purple-700 dark:text-purple-400`}>Total Accel a</div>
+                  <div className={`text-[9px] uppercase font-sans font-bold text-purple-700 dark:text-purple-400`}>{t.totalAccel}</div>
                   <div className={`text-sm font-bold ${theme === 'dark' ? 'text-purple-300' : 'text-purple-800'}`}>{telemetry.aTotal.toFixed(2)} m/s²</div>
                 </div>
               </>
             )}
 
             <div className={`p-2.5 ${theme === 'dark' ? 'bg-[#161B26]' : 'bg-white'}`}>
-              <div className={`text-[9px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>Kinetic E.</div>
+              <div className={`text-[9px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>{t.kineticE}</div>
               <div className={`text-sm font-bold ${theme === 'dark' ? 'text-cyan-400' : 'text-sky-800'}`}>{telemetry.ke.toFixed(1)} J</div>
             </div>
             <div className={`p-2.5 ${theme === 'dark' ? 'bg-[#161B26]' : 'bg-white'}`}>
-              <div className={`text-[9px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>Potential E.</div>
+              <div className={`text-[9px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>{t.potentialE}</div>
               <div className={`text-sm font-bold ${theme === 'dark' ? 'text-cyan-400' : 'text-sky-800'}`}>{telemetry.pe.toFixed(1)} J</div>
             </div>
             <div className={`p-2.5 ${theme === 'dark' ? 'bg-[#161B26]' : 'bg-white'}`}>
-              <div className={`text-[9px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>Total E.</div>
+              <div className={`text-[9px] uppercase font-sans font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}`}>{t.totalE}</div>
               <div className={`text-sm font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{telemetry.totalE.toFixed(1)} J</div>
             </div>
           </div>
 
-          {/* OVERLAY LABELS (BOTTOM-LEFT) */}
-          <div className="absolute bottom-6 left-6 flex items-center gap-4 z-20">
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${theme === 'dark' ? 'bg-[#00F2FE]' : 'bg-[#0284c7]'}`}></div>
-              <span className={`text-[10px] uppercase font-bold tracking-widest ${theme === 'dark' ? 'text-gray-300' : 'text-slate-600'}`}>Real-time Simulation</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#00FF8C]"></div>
-              <span className={`text-[10px] uppercase font-bold tracking-widest ${theme === 'dark' ? 'text-gray-300' : 'text-slate-600'}`}>Stable 60 FPS</span>
+          {/* OVERLAY CONTROLS / LABELS (BOTTOM-LEFT) */}
+          <div className="absolute bottom-6 left-6 flex items-center gap-3 z-20">
+            <button
+              onClick={() => setShowDynamicsEngine(!showDynamicsEngine)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-mono font-bold transition-all shadow-md backdrop-blur-md cursor-pointer ${
+                showDynamicsEngine
+                  ? (theme === 'dark' ? 'bg-[#00F2FE]/20 border-[#00F2FE] text-[#00F2FE]' : 'bg-sky-100 border-sky-400 text-sky-800')
+                  : (theme === 'dark' ? 'bg-[#161B26]/90 border-gray-700 text-gray-300 hover:border-gray-500 hover:text-white' : 'bg-white/95 border-slate-300 text-slate-700 hover:border-slate-400 hover:text-slate-900 shadow-slate-300/40')
+              }`}
+              title="Toggle Dynamics Engine equations and energy calculations"
+            >
+              <Activity className="w-3.5 h-3.5" />
+              <span>{t.dynamicsEngine}</span>
+              <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${showDynamicsEngine ? (theme === 'dark' ? 'bg-[#00F2FE] text-[#0B0F17]' : 'bg-sky-600 text-white') : (theme === 'dark' ? 'bg-gray-800 text-gray-400' : 'bg-slate-200 text-slate-600')}`}>
+                {showDynamicsEngine ? 'ON' : 'OFF'}
+              </span>
+            </button>
+
+            <div className={`hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-lg border backdrop-blur-md font-mono text-[10px] uppercase font-bold tracking-wider ${theme === 'dark' ? 'bg-[#161B26]/80 border-gray-800' : 'bg-white/80 border-slate-200'}`}>
+              <div className="flex items-center gap-1.5">
+                <div className={`w-2 h-2 rounded-full ${theme === 'dark' ? 'bg-[#00F2FE]' : 'bg-[#0284c7]'}`}></div>
+                <span className={theme === 'dark' ? 'text-gray-300' : 'text-slate-600'}>{t.realTime}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-[#00FF8C]"></div>
+                <span className={theme === 'dark' ? 'text-gray-300' : 'text-slate-600'}>{t.fps60}</span>
+              </div>
             </div>
           </div>
 
